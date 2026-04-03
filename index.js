@@ -1,37 +1,25 @@
 const express = require('express');
+const cors = require('cors');
 const app = express();
 const port = 3000;
-const cors = require("cors");
-app.use(express.json());
-app.use(cors());
 const db = require('./config/db');
 
-const allowedOrigin = "http://localhost:3000";
+app.use(express.json());
+
+// ✅ Single CORS config — update origin to match your frontend's port
 app.use(cors({
-    origin: allowedOrigin,
-    methods: ["GET","POST","PUT","DELETE"],
-    allowedHeaders: ["content-Type", "Authorization"],
-    credentials : true
+    origin: "http://localhost:5173", // 👈 change to wherever your React app runs
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true
 }));
 
-app.use((req, res, next)=>{
-    res.header("Access-Control-Allow-Origin", allowedOrigin);
-    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-    res.header("Access-Control-Headers", "Content-Type, Authorization"),
-    next();
-});
+// ✅ Handle preflight requests for all routes
+app.options(/.*/, cors());
 
-
-
-
-
-
-
-
-
-app.get('/', (req, res) =>{
+app.get('/', (req, res) => {
     res.send('Hello World!');
-})
+});
 
 app.post('/customers', (req, res) => {
     const { first_name, last_name, phone, email, address } = req.body;
@@ -40,10 +28,10 @@ app.post('/customers', (req, res) => {
     db.query(sql, [first_name, last_name, phone, email, address], (err, result) => {
         if (err) {
             console.error('Error inserting customer:', err);
-            res.status(500).send('Error inserting customer');
-            return;
+            return res.status(500).json({ error: 'Error inserting customer' });
         }
-        res.status(201).send('Customer added successfully');
+        // ✅ Return JSON instead of plain text so the frontend can parse it
+        res.status(201).json({ message: 'Customer added successfully', id: result.insertId });
     });
 });
 
@@ -53,14 +41,12 @@ app.get('/customers', (req, res) => {
     db.query(sql, (err, results) => {
         if (err) {
             console.error('Error fetching customers:', err);
-            return res.status(500).send('Error fetching customers');
+            return res.status(500).json({ error: 'Error fetching customers' });
         }
         res.status(200).json(results);
     });
 });
 
-
-
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
-}); 
+});
