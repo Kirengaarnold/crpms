@@ -1,9 +1,33 @@
 const express = require('express');
 const app = express();
 const port = 3000;
+const cors = require("cors");
 app.use(express.json());
-
+app.use(cors());
 const db = require('./config/db');
+
+const allowedOrigin = "http://localhost:3000";
+app.use(cors({
+    origin: allowedOrigin,
+    methods: ["GET","POST","PUT","DELETE"],
+    allowedHeaders: ["content-Type", "Authorization"],
+    credentials : true
+}));
+
+app.use((req, res, next)=>{
+    res.header("Access-Control-Allow-Origin", allowedOrigin);
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+    res.header("Access-Control-Headers", "Content-Type, Authorization"),
+    next();
+});
+
+
+
+
+
+
+
+
 
 app.get('/', (req, res) =>{
     res.send('Hello World!');
