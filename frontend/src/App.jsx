@@ -73,7 +73,7 @@ function App() {
           <button type="submit" style={styles.button}>Submit</button>
         </form>
       </div>
-    </div>
+    </div> 
   )
 }
 
